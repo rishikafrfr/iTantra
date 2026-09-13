@@ -69,26 +69,39 @@ class HiFiGanEngine(context: Context) {
 
         interpreter.run(input, output)
 
+        // Read raw TFLite output
         val waveform = FloatArray(melLength * 256)
 
         for (i in waveform.indices) {
             waveform[i] = output[0][i][0]
         }
 
+        // Diagnostics
         android.util.Log.d(
             "iTantraTTS",
-            "HiFi-GAN inference successful"
+            "RAW OUTPUT FIRST 20: ${
+                waveform.take(20).joinToString(", ")
+            }"
         )
 
         android.util.Log.d(
             "iTantraTTS",
-            "Waveform samples: ${waveform.size}"
+            "RAW OUTPUT MIN: ${
+                waveform.minOrNull()
+            }"
         )
 
         android.util.Log.d(
             "iTantraTTS",
-            "WAVEFORM FIRST 100: ${
-                waveform.take(100).joinToString(", ")
+            "RAW OUTPUT MAX: ${
+                waveform.maxOrNull()
+            }"
+        )
+
+        android.util.Log.d(
+            "iTantraTTS",
+            "RAW OUTPUT MEAN: ${
+                waveform.average()
             }"
         )
 

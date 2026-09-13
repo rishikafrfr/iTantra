@@ -126,35 +126,40 @@ class ChatActivity : AppCompatActivity() {
                 val tokenIds =
                     tokenizer.tokenizeEnglish(message)
 
+                android.util.Log.d(
+                    "iTantraTTS",
+                    "TOKENS: ${tokenIds.joinToString(",")}"
+                )
+
                 val fastPitch =
                     FastPitchEngine(this, "en")
 
                 val (mel, melLength) =
                     fastPitch.generateMel(tokenIds)
 
-                var melMin = Float.MAX_VALUE
-                var melMax = -Float.MAX_VALUE
-                var melSum = 0.0
-
-                for (value in mel) {
-                    if (value < melMin) melMin = value
-                    if (value > melMax) melMax = value
-                    melSum += kotlin.math.abs(value.toDouble())
-                }
-
                 android.util.Log.d(
                     "iTantraTTS",
-                    "MEL MIN: $melMin"
+                    "MEL length: $melLength"
                 )
 
                 android.util.Log.d(
                     "iTantraTTS",
-                    "MEL MAX: $melMax"
+                    "MEL min: ${mel.minOrNull()}"
                 )
 
                 android.util.Log.d(
                     "iTantraTTS",
-                    "MEL AVG ABS: ${melSum / mel.size}"
+                    "MEL max: ${mel.maxOrNull()}"
+                )
+
+                android.util.Log.d(
+                    "iTantraTTS",
+                    "MEL MEAN: ${mel.average()}"
+                )
+
+                android.util.Log.d(
+                    "iTantraTTS",
+                    "MEL first 10: ${mel.take(10).joinToString(",")}"
                 )
 
                 val hiFiGan =
