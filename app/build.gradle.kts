@@ -52,6 +52,8 @@ dependencies {
     implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.gson)
+    implementation("com.google.ai.edge.litert:litert:2.1.5")
+    implementation("com.microsoft.onnxruntime:onnxruntime-android:1.24.3")
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

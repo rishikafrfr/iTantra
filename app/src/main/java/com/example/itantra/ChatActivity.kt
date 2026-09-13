@@ -18,6 +18,10 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.example.itantra.tts.AudioPlayer
+import com.example.itantra.tts.FastPitchEngine
+import com.example.itantra.tts.HiFiGanEngine
+import com.example.itantra.tts.Tokenizer
 
 class ChatActivity : AppCompatActivity() {
 
@@ -25,6 +29,8 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var messagesScroll: ScrollView
     private lateinit var messageInput: EditText
     private lateinit var languageSpinner: Spinner
+
+    private lateinit var audioPlayer: AudioPlayer
 
     private val speechRequestCode = 1001
 
@@ -50,6 +56,7 @@ class ChatActivity : AppCompatActivity() {
         messagesScroll = findViewById(R.id.messagesScroll)
         messageInput = findViewById(R.id.messageInput)
         languageSpinner = findViewById(R.id.languageSpinner)
+        audioPlayer = AudioPlayer()
 
         setupLanguageSpinner()
 
@@ -91,7 +98,96 @@ class ChatActivity : AppCompatActivity() {
             tick = "✓"
         )
 
+        speakMessage(message)
+
         // Later connect this to Bluetooth/Wi-Fi transmission.
+    }
+
+    private fun speakMessage(message: String) {
+
+        val selectedLanguage =
+            languageSpinner.selectedItem.toString()
+
+        if (!selectedLanguage.contains("English")) {
+            return
+        }
+
+        Thread {
+
+            try {
+
+                android.util.Log.d(
+                    "iTantraTTS",
+                    "TTS INPUT TEXT: $message"
+                )
+
+                val tokenizer = Tokenizer()
+
+                val tokenIds =
+                    tokenizer.tokenizeEnglish(message)
+
+                val fastPitch =
+                    FastPitchEngine(this, "en")
+
+                val (mel, melLength) =
+                    fastPitch.generateMel(tokenIds)
+
+                var melMin = Float.MAX_VALUE
+                var melMax = -Float.MAX_VALUE
+                var melSum = 0.0
+
+                for (value in mel) {
+                    if (value < melMin) melMin = value
+                    if (value > melMax) melMax = value
+                    melSum += kotlin.math.abs(value.toDouble())
+                }
+
+                android.util.Log.d(
+                    "iTantraTTS",
+                    "MEL MIN: $melMin"
+                )
+
+                android.util.Log.d(
+                    "iTantraTTS",
+                    "MEL MAX: $melMax"
+                )
+
+                android.util.Log.d(
+                    "iTantraTTS",
+                    "MEL AVG ABS: ${melSum / mel.size}"
+                )
+
+                val hiFiGan =
+                    HiFiGanEngine(this)
+
+                val waveform =
+                    hiFiGan.synthesize(
+                        mel,
+                        melLength
+                    )
+
+                runOnUiThread {
+                    audioPlayer.play(waveform)
+
+                    android.util.Log.d(
+                        "iTantraTTS",
+                        "TTS AUDIO PLAYBACK STARTED"
+                    )
+                }
+
+                fastPitch.close()
+                hiFiGan.close()
+
+            } catch (e: Exception) {
+
+                android.util.Log.e(
+                    "iTantraTTS",
+                    "TTS FAILED",
+                    e
+                )
+            }
+
+        }.start()
     }
 
     fun receiveMessage(message: String) {
